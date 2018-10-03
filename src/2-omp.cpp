@@ -1,78 +1,12 @@
-#include <algorithm>
-#include <chrono>
+#include "common.h"
+
 #include <cstdlib>
 #include <ctime>
-#include <functional>
 #include <iostream>
 #include <mutex>
-#include <thread>
-#include <vector>
 
 #include <omp.h>
 
-using uint = unsigned int;
-
-constexpr size_t ROWS = 100000;
-constexpr size_t COLUMNS = 1000;
-constexpr size_t MAX_THREAD_COUNT = 4;
-constexpr size_t MIN_BLOCK_SIZE = 100;
-constexpr bool PRINT_RESULT = false;
-
-
-void fillArray(uint* arr, size_t rowCount, size_t columnsCount)
-{
-	std::generate(arr, arr + rowCount * columnsCount, std::rand);
-}
-
-uint sumOfDigits(uint num)
-{
-	uint sum = 0;
-	while (num > 0) {
-		sum += num % 10;
-		num /= 10;
-	}
-
-	return sum;
-}
-
-struct Pos
-{
-	size_t i;
-	size_t j;
-};
-
-void printMatrix(const uint* arr, size_t rowCount, size_t columnsCount)
-{
-	for (size_t i = 0; i < rowCount; ++i) {
-		for (size_t j = 0; j < columnsCount; ++j) {
-			const uint* num = arr + i * columnsCount + j;
-			std::cout << *num << "\t";
-		}
-
-		std::cout << "\n";
-	}
-}
-
-void printIndices(const uint* arr, size_t rowCount, size_t columnsCount, const std::vector<Pos>& indices)
-{
-	for (auto pos : indices) {
-		const uint* num = arr + pos.i * columnsCount + pos.j;
-		std::cout << pos.i << " " << pos.j << " " << *num << "\n";
-	}
-}
-
-size_t getThreadCount(size_t prefThreadCount, size_t rowCountCount)
-{
-	if (prefThreadCount < 0)
-		return 1;
-
-	if (rowCountCount < MIN_BLOCK_SIZE)
-		return 1;
-
-	const size_t maxThreadCountForData = rowCountCount / MIN_BLOCK_SIZE;
-	const size_t maxThreadCount = std::min(maxThreadCountForData, MAX_THREAD_COUNT);
-	return std::min(prefThreadCount, maxThreadCount);
-}
 
 void checkMultithread(const uint* arr, size_t rowCount, size_t columnsCount, size_t prefThreadCount)
 {
