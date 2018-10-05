@@ -13,7 +13,7 @@ void checkMultithread(const uint* arr, size_t rowCount, size_t columnsCount, siz
 	std::mutex mutex;
 	std::vector<Pos> indices;
 
-	omp_set_num_threads(getThreadCount(prefThreadCount, rowCount));
+	omp_set_num_threads(getThreadCount(prefThreadCount, rowCount, MAX_THREAD_COUNT));
 	const auto startTime = std::chrono::high_resolution_clock::now();
 #pragma omp parallel
 	{

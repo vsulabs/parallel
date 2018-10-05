@@ -22,7 +22,7 @@ void fillArray(uint* arr, size_t rows, size_t columns);
 uint sumOfDigits(uint num);
 
 long long doWithCppTimer(std::function<void()> f);
-size_t getThreadCount(size_t prefThreadCount, size_t rowsCount);
+size_t getThreadCount(size_t prefThreadCount, size_t rowsCount, size_t maxCount);
 
 void printMatrix(const uint* arr, size_t rows, size_t columns);
 void printIndices(const uint* arr, size_t rows, size_t columns, const std::vector<Pos>& indices);

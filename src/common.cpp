@@ -48,7 +48,7 @@ long long doWithCppTimer(std::function<void()> f)
 	return std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
 }
 
-size_t getThreadCount(size_t prefThreadCount, size_t rowsCount)
+size_t getThreadCount(size_t prefThreadCount, size_t rowsCount, size_t maxCount)
 {
 	if (prefThreadCount < 0)
 		return 1;
@@ -57,7 +57,7 @@ size_t getThreadCount(size_t prefThreadCount, size_t rowsCount)
 		return 1;
 
 	const size_t maxThreadCountForData = rowsCount / MIN_BLOCK_SIZE;
-	const size_t maxThreadCount = std::min(maxThreadCountForData, MAX_THREAD_COUNT);
+	const size_t maxThreadCount = std::min(maxThreadCountForData, maxCount);
 	return std::min(prefThreadCount, maxThreadCount);
 }
 

@@ -32,7 +32,7 @@ void checkMultithread(const uint* arr, size_t rows, size_t columns, size_t prefT
 	const auto timeElapsed = doWithCppTimer([=, &indices]() {
 		std::mutex mutex;
 		std::vector<std::thread> threads;
-		const size_t threadCount = getThreadCount(prefThreadCount, rows);
+		const size_t threadCount = getThreadCount(prefThreadCount, rows, MAX_THREAD_COUNT);
 		const size_t rowsPerThread = rows / threadCount;
 		size_t startRowInd = 0;
 		for (size_t i = 0; i < threadCount - 1; ++i) {
@@ -54,7 +54,7 @@ void checkMultithread(const uint* arr, size_t rows, size_t columns, size_t prefT
 	printIndices(arr, rows, columns, indices);
 	*/
 
-	std::cout << "Time elaped: " << timeElapsed << '\n';
+	std::cout << "Time elaped: " << timeElapsed << "ms\n";
 }
 
 int main(int argc, char* argv[])

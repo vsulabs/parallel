@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 		printIndices(arr, ROWS, COLUMNS, indices);
 	}
 
-	std::cout << "Time elaped: " << timeElapsed << '\n';
+	std::cout << "Time elaped: " << timeElapsed << "ms\n";
 
 	std::cout << std::endl;
 #ifdef _WIN32
