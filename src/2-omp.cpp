@@ -14,7 +14,7 @@ void checkMultithread(const uint* arr, size_t rowCount, size_t columnsCount, siz
 	std::vector<Pos> indices;
 
 	omp_set_num_threads(getThreadCount(prefThreadCount, rowCount, MAX_THREAD_COUNT));
-	const auto startTime = std::chrono::high_resolution_clock::now();
+	const auto startTime = omp_get_wtime();
 #pragma omp parallel
 	{
 		//std::cout << "Thread number: " << omp_get_thread_num() << std::endl;
@@ -33,8 +33,8 @@ void checkMultithread(const uint* arr, size_t rowCount, size_t columnsCount, siz
 		std::lock_guard<std::mutex> lock(mutex);
 		indices.insert(indices.cend(), positions.cbegin(), positions.cend());
 	}
-	const auto endTime = std::chrono::high_resolution_clock::now();
-	const auto timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+	const auto endTime = omp_get_wtime( );
+	const auto timeElapsed = endTime - startTime;
 
 	if (PRINT_RESULT) {
 		std::cout << "First:\n";
