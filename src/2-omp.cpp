@@ -3,14 +3,12 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include <mutex>
 
 #include <omp.h>
 
 
 void checkMultithread(const uint* arr, size_t rowCount, size_t columnsCount, size_t prefThreadCount)
 {
-	std::mutex mutex;
 	std::vector<Pos> indices;
 
 	omp_set_num_threads(getThreadCount(prefThreadCount, rowCount, MAX_THREAD_COUNT));
@@ -30,8 +28,10 @@ void checkMultithread(const uint* arr, size_t rowCount, size_t columnsCount, siz
 			}
 		}
 
-		std::lock_guard<std::mutex> lock(mutex);
-		indices.insert(indices.cend(), positions.cbegin(), positions.cend());
+#pragma omp critical
+		{
+			indices.insert(indices.cend(), positions.cbegin(), positions.cend());
+		}
 	}
 	const auto endTime = omp_get_wtime( );
 	const auto timeElapsed = endTime - startTime;
