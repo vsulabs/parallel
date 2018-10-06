@@ -16,7 +16,7 @@ bin/3-mpi: bin/common.o src/3-mpi.cpp
 	mpic++ src/3-mpi.cpp bin/common.o -Iinclude -o bin/3-mpi
 
 run-mpi: bin/3-mpi
-	mpirun -np `nproc` bin/3-mpi
+	mpirun --hostfile hostfile -np `nproc` bin/3-mpi
 
 bin:
 	mkdir bin

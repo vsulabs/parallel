@@ -90,11 +90,12 @@ int main(int argc, char* argv[])
 		size_t doneCount = 0;
 		while (doneCount < procNum - 1) {
 			size_t size;
-			MPI_Recv(&size, 1, MPI_SIZE_T, MPI_ANY_SOURCE, tResultSize, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Status status;
+			MPI_Recv(&size, 1, MPI_SIZE_T, MPI_ANY_SOURCE, tResultSize, MPI_COMM_WORLD, &status);
 			const size_t lastIndex = std::max<size_t>(0, positions.size() - 1);
 			positions.resize(positions.size() + size);
 			char* lastPos = reinterpret_cast<char*>(positions.data() + lastIndex);
-			MPI_Recv(lastPos, size * sizeof(Pos), MPI_CHAR, MPI_ANY_SOURCE, tResult, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(lastPos, size * sizeof(Pos), MPI_BYTE, status.MPI_SOURCE, tResult, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			doneCount++;
 		}
 
@@ -105,7 +106,7 @@ int main(int argc, char* argv[])
 		const size_t send_size = size * sizeof(Pos);
 		MPI_Send(&size, 1, MPI_SIZE_T, MASTER_ID, tResultSize, MPI_COMM_WORLD);
 		const char* data = reinterpret_cast<char*>(positions.data());
-		MPI_Send(data, send_size, MPI_CHAR, MASTER_ID, tResult, MPI_COMM_WORLD);
+		MPI_Send(data, send_size, MPI_BYTE, MASTER_ID, tResult, MPI_COMM_WORLD);
 		delete arrayPtr;
 	}
 
