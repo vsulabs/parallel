@@ -18,6 +18,12 @@ bin/3-mpi: bin/common.o src/3-mpi.cpp
 bin/barber: src/barber.cpp
 	g++ src/barber.cpp -lrt -lpthread -Iinclude -o bin/barber
 
+bin/semaphore.o: src/Semaphore.cpp
+	g++ -c src/Semaphore.cpp -Iinclude -o bin/semaphore.o
+
+bin/semaphore: bin/semaphore.o src/semaphore_test.cpp
+	g++ bin/semaphore.o src/semaphore_test.cpp -Iinclude -lpthread -o bin/semaphore
+
 run-mpi: bin/3-mpi
 	mpirun --hostfile hostfile -np `nproc` bin/3-mpi
 
