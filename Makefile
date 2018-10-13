@@ -1,4 +1,4 @@
-all: bin bin/0-none bin/1-mutex bin/2-omp bin/3-mpi
+all: bin bin/0-none bin/1-mutex bin/2-omp bin/3-mpi bin/barber
 
 bin/common.o: src/common.cpp
 	g++ -c src/common.cpp -Iinclude -o bin/common.o
@@ -14,6 +14,9 @@ bin/2-omp: bin/common.o src/2-omp.cpp
 
 bin/3-mpi: bin/common.o src/3-mpi.cpp
 	mpic++ src/3-mpi.cpp bin/common.o -Iinclude -o bin/3-mpi
+
+bin/barber: src/barber.cpp
+	g++ src/barber.cpp -lrt -lpthread -Iinclude -o bin/barber
 
 run-mpi: bin/3-mpi
 	mpirun --hostfile hostfile -np `nproc` bin/3-mpi
