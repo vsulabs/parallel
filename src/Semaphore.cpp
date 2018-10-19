@@ -1,11 +1,11 @@
 #include "Semaphore.h"
 
-SemaphoreImpl::SemaphoreImpl(int maxCount) 
+SemaphoreImpl::SemaphoreImpl(int maxCount)
 {
   m_count = maxCount;
 }
 
-void SemaphoreImpl::wait() 
+void SemaphoreImpl::wait()
 {
  while (true) {
     int old_val = m_count;
@@ -21,7 +21,7 @@ void SemaphoreImpl::wait()
  }
 }
 
-void SemaphoreImpl::post() 
+void SemaphoreImpl::post()
 {
  m_count++;
 }
@@ -31,12 +31,12 @@ SysSemaphore::SysSemaphore(int value)
     sem_init(&m_sem, 0, value);
 }
 
-void SysSemaphore::wait() 
+void SysSemaphore::wait()
 {
     sem_wait(&m_sem);
 }
 
-void SysSemaphore::post() 
+void SysSemaphore::post()
 {
     sem_post(&m_sem);
 }

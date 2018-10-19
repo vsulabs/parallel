@@ -14,13 +14,11 @@ constexpr int CHAIRS_NUM = 25;
 constexpr int COME_TIME = 1;
 constexpr int BARBER_TIME = 1;
 
-#if 0
-BinarySemaphore barberSleep;
-BinarySemaphore customersWait;
-#endif
-BinarySemaphore barberSleep;
-CountingSemaphore customersWait(CHAIRS_NUM);
-BinarySemaphore accessSeats;
+SemaphoreImpl barberSleep(1);
+SemaphoreImpl customersWait(CHAIRS_NUM);
+SemaphoreImpl accessSeats(1);
+
+SemaphoreImpl printSem(1);
 
 
 void randSleep(int time)
@@ -28,37 +26,65 @@ void randSleep(int time)
     sleep(rand() % time);
 }
 
-#define C(x) std::cout << "[CUST] " << #x << std::endl
-#define B(x) std::cout << "[BARB] " << #x << std::endl
+#define DEBUG(name, x) do { \
+    printSem.wait(); \
+    std::cout << "[" name "] " << x << std::endl; \
+    printSem.post(); \
+} while(0)
 
-void customer(int value, std::queue<int>& queue)
+#define C(x) DEBUG("CUST", #x)
+#define B(x) DEBUG("BURB", #x)
+
+void fillQueue(const std::string& filename, std::queue<int>& queue, std::atomic<size_t>& count)
 {
-    accessSeats.wait();
-    std::cout << "Cusomer come: " << value << std::endl;
-    if (queue.size() == CHAIRS_NUM) {
-        // skip if no free chairs
+    std::ifstream f(filename);
+    int val;
+    while (f >> val) {
+        DEBUG("", "");
+        randSleep(COME_TIME);
+
+        accessSeats.wait();
+        DEBUG("Cusomer come", val);
+        if (queue.size() == CHAIRS_NUM) {
+            // skip if no free chairs
+            accessSeats.post();
+            continue;
+        }
+
+        C(push(val));
+        queue.push(val);
         accessSeats.post();
-        return;
+
+        C(barberSleep.post());
+        barberSleep.post();
+        C(customersWait.wait());
+        customersWait.wait();
+
+        accessSeats.wait();
+        C(pop);
+        queue.pop();
+        if (queue.size() == 0)
+            count--;
+        accessSeats.post();
     }
 
-    C(push);
-    queue.push(value);
-    accessSeats.post();
-
-    C(barberSleep.post());
-    barberSleep.post();
-    C(customersWait.wait());
-    customersWait.wait();
-
-    accessSeats.wait();
-    C(pop);
-    queue.pop();
-    accessSeats.post();
+    C(finish);
 }
 
-void barber(std::queue<int>& queue, int count)
+void barber(std::queue<int>& queue, const std::atomic<size_t>& count)
 {
     while (queue.size() != 0 || count > 0) {
+        DEBUG("", "");
+        accessSeats.wait();
+        if (queue.size() == 0 && count == 0) {
+            accessSeats.post();
+            return;
+        }
+
+        accessSeats.post();
+        DEBUG("queue.size", queue.size());
+        DEBUG("count", count);
+
         B(barberSleep.wait());
         barberSleep.wait();
 
@@ -66,45 +92,31 @@ void barber(std::queue<int>& queue, int count)
         int val = queue.front();
         accessSeats.post();
 
-        std::cout << "Barber starts: " << val << std::endl;
+        DEBUG("Barber starts", val);
         randSleep(BARBER_TIME);
 
         B(customersWait.post());
         customersWait.post();
-        count--;
     }
-}
-
-int countIntLines(const std::string& filename)
-{
-    std::ifstream f(filename);
-    int val;
-    int count = 0;
-    while (f >> val)
-        count++;
-
-    return count;
 }
 
 int main(int argc, char *argv[])
 {
+    std::vector<std::string> files = { "1.txt", "2.txt" };
+    std::atomic<size_t> count{files.size()};
     std::queue<int> queue;
-    const std::string filename = "in.txt";
-    const int count = countIntLines(filename);
-    std::cout << "count = " << count << std::endl;
 
     barberSleep.wait();
     for (int i = 0; i < CHAIRS_NUM; ++i)
         customersWait.wait();
 
-    std::thread barberThread(barber, std::ref(queue), count);
+    std::thread barberThread(barber, std::ref(queue), std::ref(count));
 
-    std::ifstream f(filename);
     std::vector<std::thread> customersThread;
-    int val;
-    while (f >> val) {
+    for (auto& filename : files) {
         randSleep(COME_TIME);
-        customersThread.push_back(std::thread(customer, val, std::ref(queue)));
+        customersThread.push_back(std::thread(fillQueue, std::ref(filename),
+                    std::ref(queue), std::ref(count)));
     }
 
     for (auto& thread : customersThread) {
