@@ -32,17 +32,17 @@ void randSleep(int time)
     printSem.post(); \
 } while(0)
 
-void fillQueue(const std::string& filename, std::queue<std::string>& queue)
+void fillQueue(const std::string& filename, std::queue<std::string>& queue,
+        std::atomic<bool>& shopOpened)
 {
     std::ifstream f(filename);
     std::string val;
-    while (f >> val) {
+    while (f >> val && shopOpened) {
         randSleep(COME_TIME);
 
         accessSeats.wait();
         DEBUG("Cusomer come", val);
         if (queue.size() == CHAIRS_NUM) {
-            // skip if no free chairs
             DEBUG("Cusomer gone", val);
             accessSeats.post();
             continue;
@@ -56,8 +56,9 @@ void fillQueue(const std::string& filename, std::queue<std::string>& queue)
     }
 }
 
-void barber(std::queue<std::string>& queue)
+void barber(std::queue<std::string>& queue, std::atomic<bool>& shopOpened)
 {
+    shopOpened = true;
     for (int i = 0; i < CUSTOMERS_PER_DAY; i++) {
         barberSleep.wait();
 
@@ -70,21 +71,25 @@ void barber(std::queue<std::string>& queue)
         randSleep(BARBER_TIME);
         DEBUG("Barber finished", val);
     }
+
+    shopOpened = false;
+    DEBUG("Shop closed", "");
 }
 
 int main(int argc, char *argv[])
 {
     std::vector<std::string> files = { "1.txt", "2.txt", "3.txt" };
     std::queue<std::string> queue;
+    std::atomic<bool> shopOpened{true};
 
     barberSleep.wait();
-    std::thread barberThread(barber, std::ref(queue));
+    std::thread barberThread(barber, std::ref(queue), std::ref(shopOpened));
 
     std::vector<std::thread> customersThread;
     for (auto& filename : files) {
         randSleep(COME_TIME);
         customersThread.push_back(std::thread(fillQueue, std::ref(filename),
-                    std::ref(queue)));
+                    std::ref(queue), std::ref(shopOpened)));
     }
 
     for (auto& thread : customersThread) {
