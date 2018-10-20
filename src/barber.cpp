@@ -15,7 +15,6 @@ constexpr int COME_TIME = 3;
 constexpr int BARBER_TIME = 5;
 
 SemaphoreImpl barberSleep(1);
-SemaphoreImpl customersWait(CHAIRS_NUM);
 SemaphoreImpl accessSeats(1);
 
 SemaphoreImpl printSem(1);
@@ -32,10 +31,10 @@ void randSleep(int time)
     printSem.post(); \
 } while(0)
 
-void fillQueue(const std::string& filename, std::queue<int>& queue)
+void fillQueue(const std::string& filename, std::queue<std::string>& queue)
 {
     std::ifstream f(filename);
-    int val;
+    std::string val;
     while (f >> val) {
         randSleep(COME_TIME);
 
@@ -56,30 +55,28 @@ void fillQueue(const std::string& filename, std::queue<int>& queue)
     }
 }
 
-void barber(std::queue<int>& queue)
+void barber(std::queue<std::string>& queue)
 {
     while (true) {
         barberSleep.wait();
 
         accessSeats.wait();
-        const int val = queue.front();
+        const std::string val = queue.front();
         queue.pop();
         accessSeats.post();
 
-        DEBUG("Barber starts", val);
+        DEBUG("Barber started", val);
         randSleep(BARBER_TIME);
+        DEBUG("Barber finished", val);
     }
 }
 
 int main(int argc, char *argv[])
 {
     std::vector<std::string> files = { "1.txt", "2.txt", "3.txt" };
-    std::queue<int> queue;
+    std::queue<std::string> queue;
 
     barberSleep.wait();
-    for (int i = 0; i < CHAIRS_NUM; ++i)
-        customersWait.wait();
-
     std::thread barberThread(barber, std::ref(queue));
 
     std::vector<std::thread> customersThread;
