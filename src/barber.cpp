@@ -13,6 +13,7 @@
 constexpr int CHAIRS_NUM = 5;
 constexpr int COME_TIME = 3;
 constexpr int BARBER_TIME = 5;
+constexpr int CUSTOMERS_PER_DAY = 10;
 
 SemaphoreImpl barberSleep(1);
 SemaphoreImpl accessSeats(1);
@@ -57,7 +58,7 @@ void fillQueue(const std::string& filename, std::queue<std::string>& queue)
 
 void barber(std::queue<std::string>& queue)
 {
-    while (true) {
+    for (int i = 0; i < CUSTOMERS_PER_DAY; i++) {
         barberSleep.wait();
 
         accessSeats.wait();
